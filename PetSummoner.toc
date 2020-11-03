@@ -1,0 +1,5 @@
+## Interface: 90000
+## Title: Pet Summoner
+## Notes: Calls forth some help from one of your trusty companions. Use /summonhelp, /sh, /petsummon, /ps
+
+PetSummoner.lua
