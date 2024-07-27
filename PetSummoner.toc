@@ -3,5 +3,6 @@
 ## Notes: Calls forth some help from one of your trusty companions. Use /summonhelp, /sh, /petsummon, /ps
 ## Author: Gruggo
 ## Version: 1.0.1
+## SavedVariables: PetSummonerDB
 
 PetSummoner.lua
