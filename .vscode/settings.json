@@ -1,0 +1,28 @@
+{
+  "Lua.diagnostics.globals": [
+    "SlashCmdList",
+    "ReloadUI",
+    "DEFAULT_CHAT_FRAME",
+    "SELECTED_CHAT_FRAME",
+    "NORMAL_FONT_COLOR",
+    "ACCEPT",
+    "CANCEL",
+    "Settings",
+    "InterfaceOptions_AddCategory",
+    "hash_SlashCmdList",
+    "NORMAL_FONT_COLOR_CODE",
+    "FONT_COLOR_CODE_CLOSE",
+    "CLOSE",
+    "SetDesaturation",
+    "ColorPickerFrame",
+    "OpacitySliderFrame",
+    "OKAY",
+    "NOT_BOUND",
+    "IsSecureCmd",
+    "NUM_CHAT_WINDOWS",
+    "ChatEdit_GetActiveWindow",
+    "SAY",
+    "PARTY",
+    "GUILD"
+  ]
+}
