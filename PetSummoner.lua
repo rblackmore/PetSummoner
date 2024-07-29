@@ -1,7 +1,9 @@
+---@diagnostic disable: duplicate-set-field
+---@class AceAddon AceConsole AceEvent
 PetSummoner = LibStub("AceAddon-3.0"):NewAddon("PetSummoner", "AceConsole-3.0", "AceEvent-3.0")
 
-local AC = LibStub("AceConfig-3.0")
-local ACD = LibStub("AceConfigDialog-3.0")
+local AceConfig = LibStub("AceConfig-3.0")
+local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
 local defaults = {
     profile = {
@@ -54,25 +56,54 @@ local options = {
 -- #region LifeTime Functions
 function PetSummoner:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("PetSummonerDB", defaults, true)
-    AC:RegisterOptionsTable("PetSummoner", options)
-    self.optionsFrame, self.optionsCategoryId = ACD:AddToBlizOptions("PetSummoner", "PetSummoner")
+    AceConfig:RegisterOptionsTable("PetSummoner", options)
+    self.optionsFrame, self.optionsCategoryId = AceConfigDialog:AddToBlizOptions("PetSummoner", "PetSummoner")
 
     local profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 
-    AC:RegisterOptionsTable("PetSummoner_Profiles", profiles)
-    ACD:AddToBlizOptions("PetSummoner_Profiles", "Profiles", "PetSummoner")
+    AceConfig:RegisterOptionsTable("PetSummoner_Profiles", profiles)
+    AceConfigDialog:AddToBlizOptions("PetSummoner_Profiles", "Profiles", "PetSummoner")
 
     self:RegisterChatCommand("petsummon", "SlashCommand")
     self:RegisterChatCommand("ps", "SlashCommand")
     self:RegisterChatCommand("summonhelp", "SlashCommand")
     self:RegisterChatCommand("sh", "SlashCommand")
-    self:LoadFavoritePets()
+    -- self:LoadFavoritePets()
+    -- self:LoadMounts()
 end
 
 function PetSummoner:OnEnable()
 end
 
 function PetSummoner:OnDisable()
+end
+
+local function iter_Pets()
+    local iterator = 0
+    local numPets, ownedPets = C_PetJournal.GetNumPets()
+
+    PetSummoner:Print("Num Pets:", numPets)
+    PetSummoner:Print("Owned Pets:", ownedPets)
+
+    return function()
+        iterator = iterator + 1
+        if iterator <= numPets then
+            ---@type string
+            local petID = C_PetJournal.GetPetInfoByIndex(iterator)
+
+            ---@class PetJournalPetInfo
+            local petTable = C_PetJournal.GetPetInfoTableByPetID(petID)
+            PetSummoner:Print("ID:", petID)
+            PetSummoner:Print("Details:", petTable.name, petTable.isFavorite)
+            petTable.petID = petID
+            return petTable
+        end
+    end
+end
+
+function PetSummoner:LoadMounts()
+    local numMounts = C_MountJournal.GetNumMounts()
+    PetSummoner:Print("Num Mounts:", numMounts)
 end
 
 -- #endregion
@@ -85,25 +116,17 @@ function PetSummoner:LoadFavoritePets()
     C_PetJournal.SetDefaultFilters()
     C_PetJournal.SetSearchFilter("")
 
-    local numPets, _ = C_PetJournal.GetNumPets()
     local favoritePets = {}
-
-    for i = 1, numPets do
-        local petID, _, owned, customName, _, isFavorite, _, speciesName, _, _, _, _, description, _, _, _, _, _ =
-            C_PetJournal.GetPetInfoByIndex(i)
-
-        if isFavorite then
-            favoritePets[i] = {
-                ["petID"] = petID,
-                ["owned"] = owned,
-                ["customName"] = customName,
-                ["favorite"] = isFavorite,
-                ["speciesName"] = speciesName,
-                ["description"] = description
-            }
+    for pet in iter_Pets() do
+        PetSummoner:Print("Testing:", pet.name)
+        PetSummoner:Print("isFavorite:", pet.isFavorite)
+        if pet.isFavorite then
+            PetSummoner:Print("is Favorite")
+            favoritePets[#favoritePets + 1] = pet
         end
     end
 
+    PetSummoner:Print("Num Favorite Pets:", #favoritePets)
     self.db.profile["FavoritePets"] = favoritePets
 end
 
@@ -142,95 +165,19 @@ end
 
 function PetSummoner:SummonFavoritePet()
     local db = self.db;
+    self:LoadFavoritePets()
 
     local favoritePets = db.profile["FavoritePets"]
-    if #favoritePets <= 0 then
-        self:Print("Favorite Pets have not been Loaded")
-        return
-    end
+
     local isCustomName = db.profile.useCustomName
     local msgFormat = db.profile.msgFormat
 
     local rand = math.random(#favoritePets)
-    local selectedPet = favoritePets[rand]
+    local selectedPetID = favoritePets[rand]
 
-    C_PetJournal.SummonPetByGUID(selectedPet.petID)
-
-    local name = isCustomName and selectedPet.customName or selectedPet.speciesName
+    C_PetJournal.SummonPetByGUID(selectedPetID)
+    local _, customName, _, _, _, _, _, name = C_PetJournal.GetPetInfoByPetID(selectedPetID)
+    local name = isCustomName and customName or name
 
     SendChatMessage(format(msgFormat, name), db.profile.channel)
 end
-
--- function f:OnEvent(event, ...)
---     self[event](self, event, ...)
--- end
-
--- function f:ADDON_LOADED(event, name)
---     if name ~= addOnName then return end
---     PetSummonerDB = PetSummonerDB or CopyTable(defaults)
---     self.db = PetSummonerDB
---     -- self:InitializeOptions()
--- end
-
--- function f:ResetData()
---     PetSummonerDB = CopyTable(defaults)
---     self.db = PetSummonerDB
---     print("Pet Summoner Data Reset")
--- end
-
--- function f:SummonFavoritePet()
---     local db = self.db
-
---     if C_PetJournal.HasFavoritePets() == false then
---         print("No Favorite Pets Found")
---     end
-
---     C_PetJournal.SetDefaultFilters()
---     C_PetJournal.SetSearchFilter("")
-
---     local numPets, numOwned = C_PetJournal.GetNumPets()
-
---     local favoritePets = {}
-
---     for i = 1, numPets do
---         local petID, _, owned, customName, _, isFavorite, _, speciesName, _, _, _, _, description, _, _, _, _, _ =
---             C_PetJournal.GetPetInfoByIndex(i)
-
---         if isFavorite then
---             favoritePets[i] = {
---                 ["petID"] = petID,
---                 ["owned"] = owned,
---                 ["customName"] = customName,
---                 ["favorite"] = isFavorite,
---                 ["speciesName"] = speciesName,
---                 ["description"] = description
---             }
---         end
---     end
-
---     db["FavoritePets"] = favoritePets
-
---     local rand = math.random(#db["FavoritePets"])
---     local selectedPet = db["FavoritePets"][rand]
---     local id = selectedPet.petID
---     local name = selectedPet.customName or selectedPet.speciesName
-
---     C_PetJournal.SummonPetByGUID(id)
-
---     SendChatMessage(format(db["msgFormat"], name))
--- end
-
--- f:RegisterEvent("ADDON_LOADED")
--- f:SetScript("OnEvent", f.OnEvent)
-
--- SLASH_PETSUMMONER_SUMMONHELP1, SLASH_PETSUMMONER_SUMMONHELP2, SLASH_PETSUMMONER_SUMMONHELP3, SLASH_PETSUMMONER_SUMMONHELP4 =
---     "/summonhelp", "/sh", "/petsummon", "/ps";
--- SLASH_PETSUMMONER_RESET1 = "/psreset"
-
--- SlashCmdList["PETSUMMONER_SUMMONHELP"] = function(msg, editbox)
---     f:SummonFavoritePet()
--- end
-
--- SlashCmdList["PETSUMMONER_RESET"] = function(msg, editbox)
---     f:ResetData()
--- end

@@ -23,6 +23,7 @@
     "ChatEdit_GetActiveWindow",
     "SAY",
     "PARTY",
-    "GUILD"
+    "GUILD",
+    "class"
   ]
 }
