@@ -1,5 +1,10 @@
 ---@diagnostic disable: duplicate-set-field
 
+---@class AceAddon AceConsole AceEvent
+local addOn = LibStub("AceAddon-3.0"):GetAddon("PetSummoner")
+---@class AceModule
+local Options = addOn:GetModule("Options")
+
 local function iPetIDs()
     local iterator = 0
     local numPets, ownedPets = C_PetJournal.GetNumPets()
@@ -12,8 +17,12 @@ local function iPetIDs()
         end
     end
 end
+-- Currently, I load favorites when SummonFavoritePet() is called only.
+-- There's a but when doing it onInitialize at logon, but not on reload.
+-- I should look into various Events to hook into, and only call LoadFavoritePets() when approppriate
+-- IE: On login, reload, fav pet added/removed.
 
-function PetSummoner:LoadFavoritePets()
+function addOn:LoadFavoritePets()
     if C_PetJournal.HasFavoritePets() == false then
         self:Print("No Favorite Pets Found")
         return
@@ -32,58 +41,25 @@ function PetSummoner:LoadFavoritePets()
         -- end
     end
 
-    PetSummoner:Print("Num Favorite Pets:", #favoritePets)
     self.db.profile["FavoritePets"] = favoritePets
 end
 
-function PetSummoner:SlashCommand(msg)
-    if msg:trim() == "config" then
-        Settings.OpenToCategory(self.optionsCategoryId)
-        return
-    end
-
-    self:SummonFavoritePet();
-end
-
-function PetSummoner:GetMessageFormat(info)
-    return self.db.profile.msgFormat
-end
-
-function PetSummoner:SetMessageFormat(info, value)
-    self.db.profile.msgFormat = value
-end
-
-function PetSummoner:GetAnnounceChannel(info)
-    return self.db.profile.channel
-end
-
-function PetSummoner:SetAnnounceChannel(info, value)
-    self.db.profile.channel = value
-end
-
-function PetSummoner:IsCustomName(info)
-    return self.db.profile.useCustomName
-end
-
-function PetSummoner:ToggleCustomName(info, value)
-    self.db.profile.useCustomName = value
-end
-
-function PetSummoner:SummonFavoritePet()
+function addOn:SummonFavoritePet()
     local db = self.db;
     self:LoadFavoritePets()
 
     local favoritePets = db.profile["FavoritePets"]
 
-    local isCustomName = db.profile.useCustomName
-    local msgFormat = db.profile.msgFormat
+    local useCustomName = db.profile["UseCustomName"]
+    local msgFormat = db.profile["MessageFormat"]
+    local channel = db.profile["Channel"]
 
     local rand = math.random(#favoritePets)
     local selectedPetID = favoritePets[rand]
 
     C_PetJournal.SummonPetByGUID(selectedPetID)
     local _, customName, _, _, _, _, _, name = C_PetJournal.GetPetInfoByPetID(selectedPetID)
-    local name = isCustomName and customName or name
+    local name = useCustomName and customName or name
 
-    SendChatMessage(format(msgFormat, name), db.profile.channel)
+    SendChatMessage(format(msgFormat, name), channel)
 end
