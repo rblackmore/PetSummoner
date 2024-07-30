@@ -3,6 +3,9 @@ local addOn = LibStub("AceAddon-3.0"):GetAddon("PetSummoner")
 ---@class AceModule
 local Options = addOn:GetModule("Options")
 
+local AceConfig = LibStub("AceConfig-3.0")
+local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+
 local function getGlobalOptions()
   return {
     ["MessageFormat"] = {
@@ -38,6 +41,7 @@ local function getGlobalOptions()
     }
   }
 end
+
 function Options:GetDefaultOptions()
   local defaults = {
     ["profile"] = {
@@ -52,12 +56,37 @@ end
 
 function Options:GetOptionsTable()
   local options = {
-    name = "PetSummoner",
+    name = "Pet Summoner",
     handler = Options,
     type = "group",
     args = getGlobalOptions()
   }
   return options
+end
+
+function Options:ConfigureGlobalOptions()
+  AceConfig:RegisterOptionsTable("PetSummoner", self:GetOptionsTable(), "psconfig")
+  local configFrame, configId = AceConfigDialog:AddToBlizOptions("PetSummoner", "Pet Summoner")
+
+  self.GlobalSettingsDialog =
+  {
+    ["Frame"] = configFrame,
+    ["Id"] = configId
+  }
+end
+
+function Options:ConfigureOptionsProfiles()
+  local profileOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(addOn.db)
+
+  AceConfig:RegisterOptionsTable("PetSummoner_Profiles", profileOptions, "psprofile")
+  local profileFrame, profileId =
+      AceConfigDialog:AddToBlizOptions("PetSummoner_Profiles", "Profiles", Options.GlobalSettingsDialog["Id"])
+
+  self.ProfileSettingsDialog =
+  {
+    ["Frame"] = profileFrame,
+    ["Id"] = profileId,
+  }
 end
 
 function Options:GetMessageFormat(info)
