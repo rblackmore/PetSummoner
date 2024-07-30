@@ -13,15 +13,15 @@ local function getGlobalOptions()
       name = "Message Format",
       desc = "Format of the message to display, use %s in place where pet name should be shown.",
       usage = "<Your message>",
-      get = "GetMessageFormat",
-      set = "SetMessageFormat",
+      get = "GetValue",
+      set = "SetValue",
     },
     ["UseCustomName"] = {
       type = "toggle",
       name = "Custom Name",
       desc = "Use Custom Name if one is set, otherwise Species Name.",
-      get = "IsCustomName",
-      set = "ToggleCustomName"
+      get = "GetValue",
+      set = "SetValue",
     },
     ["Channel"] = {
       type = "select",
@@ -36,8 +36,8 @@ local function getGlobalOptions()
         ["INSTANCE_CHAT"] = "INSTANCE_CHAT",
         ["GUILD"] = "GUILD",
       },
-      get = "GetAnnounceChannel",
-      set = "SetAnnounceChannel",
+      get = "GetValue",
+      set = "SetValue",
     }
   }
 end
@@ -89,26 +89,18 @@ function Options:ConfigureOptionsProfiles()
   }
 end
 
-function Options:GetMessageFormat(info)
-  return addOn.db.profile["MessageFormat"]
+function Options:GetValue(info)
+  if info.arg then
+    return addOn.db.profile[info.arg][info[#info]]
+  else
+    return addOn.db.profile[info[#info]]
+  end
 end
 
-function Options:SetMessageFormat(info, value)
-  addOn.db.profile["MessageFormat"] = value
-end
-
-function Options:GetAnnounceChannel(info)
-  return addOn.db.profile["Channel"]
-end
-
-function Options:SetAnnounceChannel(info, value)
-  addOn.db.profile["Channel"] = value
-end
-
-function Options:IsCustomName(info)
-  return addOn.db.profile["UseCustomName"]
-end
-
-function Options:ToggleCustomName(info, value)
-  addOn.db.profile["UseCustomName"] = value
+function Options:SetValue(info, value)
+  if info.arg then
+    addOn.db.profile[info.arg][info[#info]] = value
+  else
+    addOn.db.profile[info[#info]] = value
+  end
 end
