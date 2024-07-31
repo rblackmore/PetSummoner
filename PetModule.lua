@@ -12,7 +12,7 @@ local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
 local eventsToRegister = {
-    "PET_JOURNAL_LIST_UPDATE"
+
 }
 
 local registeredEvents = {}
@@ -91,10 +91,6 @@ function PetModule:OnInitialize()
     end
 end
 
-function PetModule:PET_JOURNAL_LIST_UPDATE()
-    self:LoadFavoritePets()
-end
-
 function PetModule:OnEnable()
 end
 
@@ -141,6 +137,10 @@ end
 
 function PetModule:SummonFavoritePet()
     local moduleDB = self.db;
+    
+    if moduleDB["FavoritePets"] == nil then
+        self:LoadFavoritePets()
+    end
 
     local favoritePets = moduleDB.profile["FavoritePets"]
     local useCustomName = moduleDB.profile["UseCustomName"]
