@@ -6,64 +6,47 @@ local Options = addOn:GetModule("Options")
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
-local function getGlobalOptions()
-  return {
-    ["MessageFormat"] = {
-      type = "input",
-      name = "Message Format",
-      desc = "Format of the message to display, use %s in place where pet name should be shown.",
-      usage = "<Your message>",
-      get = "GetValue",
-      set = "SetValue",
-    },
-    ["UseCustomName"] = {
-      type = "toggle",
-      name = "Custom Name",
-      desc = "Use Custom Name if one is set, otherwise Species Name.",
-      get = "GetValue",
-      set = "SetValue",
-    },
-    ["Channel"] = {
-      type = "select",
-      name = "Channel",
-      desc = "The Channel to Announce your Pet Summon",
-      values = {
-        ["SAY"] = "SAY",
-        ["EMOTE"] = "EMOTE",
-        ["YELL"] = "YELL",
-        ["PARTY"] = "PARTY",
-        ["RAID"] = "RAID",
-        ["INSTANCE_CHAT"] = "INSTANCE_CHAT",
-        ["GUILD"] = "GUILD",
-      },
-      get = "GetValue",
-      set = "SetValue",
-    }
-  }
-end
-
-function Options:GetDefaultOptions()
+function Options:GetGlobalOptionsDefaultDatabase()
   local defaults = {
     ["profile"] = {
-      ["MessageFormat"] = "Help me %s you're my only hope!!!",
       ["Channel"] = "SAY",
     }
   }
   return defaults
 end
 
-function Options:GetOptionsTable()
+local globalOptions =
+{
+  ["Channel"] = {
+    type = "select",
+    name = "Channel",
+    desc = "The Channel to Announce your Summon to",
+    values = {
+      ["SAY"] = "SAY",
+      ["EMOTE"] = "EMOTE",
+      ["YELL"] = "YELL",
+      ["PARTY"] = "PARTY",
+      ["RAID"] = "RAID",
+      ["INSTANCE_CHAT"] = "INSTANCE_CHAT",
+      ["GUILD"] = "GUILD",
+    },
+    get = "GetGlobalValue",
+    set = "SetGlobalValue",
+  }
+}
+
+function Options:GetGlobalOptionsTable()
   local options = {
     name = "Pet Summoner",
     handler = Options,
     type = "group",
-    args = getGlobalOptions()
+    args = globalOptions
   }
   return options
 end
 
 function Options:ConfigureGlobalOptions()
-  AceConfig:RegisterOptionsTable("PetSummoner", self:GetOptionsTable(), "psconfig")
+  AceConfig:RegisterOptionsTable("PetSummoner", self:GetGlobalOptionsTable(), "psconfig")
   local configFrame, configId = AceConfigDialog:AddToBlizOptions("PetSummoner", "Pet Summoner")
 
   self.GlobalSettingsDialog =
@@ -87,7 +70,7 @@ function Options:ConfigureOptionsProfiles()
   }
 end
 
-function Options:GetValue(info)
+function Options:GetGlobalValue(info)
   if info.arg then
     return addOn.db.profile[info.arg][info[#info]]
   else
@@ -95,7 +78,7 @@ function Options:GetValue(info)
   end
 end
 
-function Options:SetValue(info, value)
+function Options:SetGlobalValue(info, value)
   if info.arg then
     addOn.db.profile[info.arg][info[#info]] = value
   else

@@ -12,26 +12,24 @@ local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
 function addOn:OnInitialize()
-  self.db = LibStub("AceDB-3.0"):New("PetSummonerDB", Options:GetDefaultOptions(), true)
+  self.db = LibStub("AceDB-3.0"):New("PetSummonerDB", Options:GetGlobalOptionsDefaultDatabase(), true)
 
   Options:ConfigureGlobalOptions()
   Options:ConfigureOptionsProfiles()
+end
 
+function addOn:OnEnable()
   self:RegisterChatCommand("petsummon", "ExecuteChatCommand")
   self:RegisterChatCommand("ps", "ExecuteChatCommand")
   self:RegisterChatCommand("summonhelp", "ExecuteChatCommand")
   self:RegisterChatCommand("sh", "ExecuteChatCommand")
 end
 
-function addOn:OnEnable()
-
-end
-
 function addOn:OnDisable()
 end
 
 function addOn:ExecuteChatCommand(msg)
-  if msg:trim() == "config" then
+  if msg:trim() == "config" then  
     Settings.OpenToCategory(Options.GlobalSettingsDialog["Id"])
     return
   end
