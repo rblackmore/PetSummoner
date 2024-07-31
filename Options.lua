@@ -47,8 +47,6 @@ function Options:GetDefaultOptions()
     ["profile"] = {
       ["MessageFormat"] = "Help me %s you're my only hope!!!",
       ["Channel"] = "SAY",
-      ["UseCustomName"] = true,
-      ["FavoritePets"] = {}
     }
   }
   return defaults

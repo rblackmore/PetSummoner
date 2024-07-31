@@ -3,7 +3,7 @@
 ## Notes: Calls forth some help from one of your trusty companions. Use /summonhelp, /sh, /petsummon, /ps
 ## Author: Gruggo
 ## Version: 1.0.1
-## SavedVariables: PetSummonerDB
+## SavedVariables: PetSummonerDB, PetSummoner_PetModuleDB
 ## OptionalDeps: Ace3
 
 Libs\LibStub\LibStub.lua
@@ -18,4 +18,4 @@ Libs\AceConfig-3.0\AceConfig-3.0.xml
 
 Main.lua
 Options.lua
-PetSummoner.lua
+PetModule.lua

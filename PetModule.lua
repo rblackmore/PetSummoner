@@ -1,28 +1,49 @@
 ---@diagnostic disable: duplicate-set-field
 
----@class AceAddon AceConsole AceEvent
+---@class AceAddon: AceConsole-3.0, AceEvent-3.0
 local addOn = LibStub("AceAddon-3.0"):GetAddon("PetSummoner")
+
 ---@class AceModule
 local Options = addOn:GetModule("Options")
+---@class AceModule: AceConsole-3.0, AceEvent-3.0
+local PetModule = addOn:GetModule("PetModule")
 
+-- Iterator, iterates over all pets, and returns each petID.
 local function iPetIDs()
     local iterator = 0
     local numPets, ownedPets = C_PetJournal.GetNumPets()
 
     return function()
         iterator = iterator + 1
-        if iterator <= ownedPets then
+        if iterator <= numPets then
             local petID = C_PetJournal.GetPetInfoByIndex(iterator)
             return petID
         end
     end
 end
--- Currently, I load favorites when SummonFavoritePet() is called only.
--- There's a but when doing it onInitialize at logon, but not on reload.
--- I should look into various Events to hook into, and only call LoadFavoritePets() when approppriate
--- IE: On login, reload, fav pet added/removed.
 
-function addOn:LoadFavoritePets()
+function PetModule:GetDefaultOptions()
+    local defaults = {
+        ["profile"] = {
+            ["UseCustomName"] = true,
+            ["FavoritePets"] = {},
+        }
+    }
+    return defaults
+end
+
+function PetModule:OnInitialize()
+    self.db = LibStub("AceDB-3.0"):New("PetSummoner_PetModuleDB", self:GetDefaultOptions(), true)
+    self:LoadFavoritePets()
+end
+
+function PetModule:OnEnable()
+end
+
+function PetModule:OnDisable()
+end
+
+function PetModule:LoadFavoritePets()
     if C_PetJournal.HasFavoritePets() == false then
         self:Print("No Favorite Pets Found")
         return
@@ -32,27 +53,23 @@ function addOn:LoadFavoritePets()
     C_PetJournal.SetSearchFilter("")
 
     local favoritePets = {}
+    -- Loop over all Pet Ids, if they are set as favorite, add the Id to list.
     for id in iPetIDs() do
-        -- if pet.isFavorite then
         local petInfo = C_PetJournal.GetPetInfoTableByPetID(id)
         if petInfo.isFavorite then
             favoritePets[#favoritePets + 1] = id
         end
-        -- end
     end
 
+    -- Add list of favorite pet ids to database.
     self.db.profile["FavoritePets"] = favoritePets
 end
 
-function addOn:SummonFavoritePet()
-    local db = self.db;
-    self:LoadFavoritePets()
+function PetModule:SummonFavoritePet()
+    local moduleDB = self.db;
 
-    local favoritePets = db.profile["FavoritePets"]
-
-    local useCustomName = db.profile["UseCustomName"]
-    local msgFormat = db.profile["MessageFormat"]
-    local channel = db.profile["Channel"]
+    local favoritePets = moduleDB.profile["FavoritePets"]
+    local useCustomName = moduleDB.profile["UseCustomName"]
 
     local rand = math.random(#favoritePets)
     local selectedPetID = favoritePets[rand]
@@ -61,5 +78,13 @@ function addOn:SummonFavoritePet()
     local _, customName, _, _, _, _, _, name = C_PetJournal.GetPetInfoByPetID(selectedPetID)
     local name = useCustomName and customName or name
 
-    SendChatMessage(format(msgFormat, name), channel)
+    self:AnnounceSummon(name)
+end
+
+function PetModule:AnnounceSummon(petName)
+    local addOnDB = addOn.db;
+    local msgFormat = addOnDB.profile["MessageFormat"]
+    local channel = addOnDB.profile["Channel"]
+
+    SendChatMessage(format(msgFormat, petName), channel)
 end

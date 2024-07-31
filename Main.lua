@@ -2,8 +2,11 @@
 ---@class AceAddon: AceConsole-3.0, AceEvent-3.0
 local addOn = LibStub("AceAddon-3.0"):NewAddon("PetSummoner", "AceConsole-3.0", "AceEvent-3.0")
 _G.PetSummoner = addOn
+
 ---@class AceModule
 local Options = addOn:NewModule("Options")
+---@class AceModule: AceConsole-3.0, AceEvent-3.0
+local PetModule = addOn:NewModule("PetModule", "AceConsole-3.0", "AceEvent-3.0")
 
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
@@ -37,5 +40,5 @@ function addOn:ExecuteChatCommand(msg)
     return
   end
 
-  self:SummonFavoritePet();
+  PetModule:SummonFavoritePet();
 end
