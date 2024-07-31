@@ -2,7 +2,7 @@
 ## Title: Pet Summoner
 ## Notes: Calls forth some help from one of your trusty companions. Use /summonhelp, /sh, /petsummon, /ps
 ## Author: Gruggo
-## Version: 1.0.1
+## Version: 0.0.5
 ## SavedVariables: PetSummonerDB, PetSummoner_PetModuleDB
 ## OptionalDeps: Ace3
 
