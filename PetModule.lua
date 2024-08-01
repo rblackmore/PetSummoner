@@ -31,7 +31,7 @@ local function iPetIDs()
     end
 end
 
-function PetModule:GetPetModuleDefaultDatabase()
+function PetModule:GetDefaultDatabase()
     local defaults = {
         ["profile"] = {
             ["MessageFormat"] = "Help me %s you're my only hope!!!",
@@ -60,7 +60,7 @@ local petModuleOptions = {
     },
 }
 
-function PetModule:GetPetModuleOptionsTable()
+function PetModule:GetOptionsTable()
     local options = {
         name = "Pets",
         handler = PetModule,
@@ -71,9 +71,20 @@ function PetModule:GetPetModuleOptionsTable()
 end
 
 function PetModule:OnInitialize()
-    self.db = LibStub("AceDB-3.0"):New("PetSummoner_PetModuleDB", self:GetPetModuleDefaultDatabase(), true)
+    
+    self:ConfigureOptionsDataBase()
+    for _, event in ipairs(eventsToRegister) do
+        if not registeredEvents[event] then
+            self:RegisterEvent(event)
+            registeredEvents[event] = true
+        end
+    end
+end
 
-    AceConfig:RegisterOptionsTable("PetSummoner_PetModule", self:GetPetModuleOptionsTable(), "petconfig")
+function PetModule:ConfigureOptionsDataBase()
+    self.db = LibStub("AceDB-3.0"):New("PetSummoner_PetModuleDB", self:GetDefaultDatabase(), true)
+
+    AceConfig:RegisterOptionsTable("PetSummoner_PetModule", self:GetOptionsTable(), "petconfig")
 
     local petmoduleFrame, petmoduleId =
         AceConfigDialog:AddToBlizOptions("PetSummoner_PetModule", "Pets", Options.GlobalSettingsDialog["Id"])
@@ -82,13 +93,6 @@ function PetModule:OnInitialize()
         ["Frame"] = petmoduleFrame,
         ["Id"] = petmoduleId,
     }
-
-    for _, event in ipairs(eventsToRegister) do
-        if not registeredEvents[event] then
-            self:RegisterEvent(event)
-            registeredEvents[event] = true
-        end
-    end
 end
 
 function PetModule:OnEnable()
@@ -137,7 +141,7 @@ end
 
 function PetModule:SummonFavoritePet()
     local moduleDB = self.db;
-    
+
     if moduleDB["FavoritePets"] == nil then
         self:LoadFavoritePets()
     end
@@ -157,7 +161,7 @@ end
 
 function PetModule:AnnounceSummon(petName)
     local msgFormat = self.db.profile["MessageFormat"]
-    local channel = addOn.db.profile["Channel"]
+    local channel = Options.db.profile["Channel"]
 
     SendChatMessage(format(msgFormat, petName), channel)
 end

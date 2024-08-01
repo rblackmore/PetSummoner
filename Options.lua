@@ -1,3 +1,4 @@
+---@diagnostic disable: duplicate-set-field
 ---@class AceAddon
 local addOn = LibStub("AceAddon-3.0"):GetAddon("PetSummoner")
 ---@class AceModule
@@ -6,7 +7,7 @@ local Options = addOn:GetModule("Options")
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
-function Options:GetGlobalOptionsDefaultDatabase()
+function Options:GetDefaultDatabase()
   local defaults = {
     ["profile"] = {
       ["Channel"] = "SAY",
@@ -35,7 +36,7 @@ local globalOptions =
   }
 }
 
-function Options:GetGlobalOptionsTable()
+function Options:GetOptionsTable()
   local options = {
     name = "Pet Summoner",
     handler = Options,
@@ -45,8 +46,14 @@ function Options:GetGlobalOptionsTable()
   return options
 end
 
+function Options:OnInitialize()
+  self.db = LibStub("AceDB-3.0"):New("PetSummonerDB", Options:GetDefaultDatabase(), true)
+  self:ConfigureGlobalOptions()
+  self:ConfigureOptionsProfiles()
+end
+
 function Options:ConfigureGlobalOptions()
-  AceConfig:RegisterOptionsTable("PetSummoner", self:GetGlobalOptionsTable(), "psconfig")
+  AceConfig:RegisterOptionsTable("PetSummoner", self:GetOptionsTable(), "psconfig")
   local configFrame, configId = AceConfigDialog:AddToBlizOptions("PetSummoner", "Pet Summoner")
 
   self.GlobalSettingsDialog =
@@ -57,7 +64,7 @@ function Options:ConfigureGlobalOptions()
 end
 
 function Options:ConfigureOptionsProfiles()
-  local profileOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(addOn.db)
+  local profileOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 
   AceConfig:RegisterOptionsTable("PetSummoner_Profiles", profileOptions, "psprofile")
   local profileFrame, profileId =
@@ -72,16 +79,16 @@ end
 
 function Options:GetGlobalValue(info)
   if info.arg then
-    return addOn.db.profile[info.arg][info[#info]]
+    return self.db.profile[info.arg][info[#info]]
   else
-    return addOn.db.profile[info[#info]]
+    return self.db.profile[info[#info]]
   end
 end
 
 function Options:SetGlobalValue(info, value)
   if info.arg then
-    addOn.db.profile[info.arg][info[#info]] = value
+    self.db.profile[info.arg][info[#info]] = value
   else
-    addOn.db.profile[info[#info]] = value
+    self.db.profile[info[#info]] = value
   end
 end
