@@ -5,7 +5,7 @@ local addOn = LibStub("AceAddon-3.0"):GetAddon("PetSummoner")
 
 ---@class AceModule
 local Options = addOn:GetModule("Options")
----@class AceModule: AceConsole-3.0, AceEvent-3.0
+---@class AceModule: AceConsole-3.0, AceEvent-3.0, AceTimer-3.0
 local PetModule = addOn:GetModule("PetModule")
 ---@class AceModule: AceConsole-3.0, AceEvent-3.0, AceTimer-3.0
 local PetAutomationModule = PetModule:NewModule("PetAutomationModule", "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
@@ -64,13 +64,14 @@ function PetModule:GetDefaultDatabase()
                 }
             },
             ["FavoritePets"] = {},
-            ["CurrentZoneCompanions"] = {},
             ["Companions"] = {}
         }
     }
 
     return defaults
 end
+
+PetModule["CurrentZoneCompanions"] = {}
 
 local petModuleOptions = {
     ["MessageFormat"] = {
@@ -111,8 +112,6 @@ end
 
 function PetModule:OnInitialize()
     self:ConfigureOptionsDataBase()
-
-    self:AddFavoritesToLocation("GLOBAL")
 
     for _, event in ipairs(eventsToRegister) do
         if not registeredEvents[event] then
@@ -210,8 +209,9 @@ function PetModule:UpdateCurrentZoneCompanions()
 
         location = PETSUMMONER_INSTANCETYPES[instanceType]
     end
-
-    self.db["profile"]["CurrentZoneCompanions"] = self.db["profile"]["Companions"][location]
+    self:Printf("Updating CurrentZone To Location: %s with %d comanions ", location,
+        #self.db["profile"]["Companions"][location])
+    self["CurrentZoneCompanions"] = self.db["profile"]["Companions"][location]
 end
 
 function PetModule:SummonFavoritePet(announce)
@@ -240,33 +240,60 @@ end
 function PetModule:SummonCompanion(announce)
     local companionSlots = {}
 
-    if not self.db["profile"]["CurrentZoneCompanions"] then
+    if not self["CurrentZoneCompanions"] then
         self:UpdateCurrentZoneCompanions()
     end
 
-    local currentZoneCompanions = self.db["profile"]["CurrentZoneCompanions"]
+    local currentZoneCompanions = self["CurrentZoneCompanions"]
     local summonedId = C_PetJournal.GetSummonedPetGUID()
 
     for i = 1, #currentZoneCompanions do
-        if self.db["profile"]["CurrentZoneCompanions"][i]["petID"] ~= summonedId then
-            companionSlots[i] = self.db["profile"]["CurrentZoneCompanions"][i]
+        if self["CurrentZoneCompanions"][i]["petID"] ~= summonedId then
+            companionSlots[i] = self["CurrentZoneCompanions"][i]
         end
     end
 
-    C_PetJournal.SummonPetByGUID(companionSlots[math.random(#companionSlots)])
+    local randoPetId = companionSlots[math.random(#companionSlots)]
 
-    if announce then
-        self:AnnounceSummon()
-    end
-end
+    C_PetJournal.SummonPetByGUID(randoPetId)
 
-function PetModule:AnnounceSummon()
-    local msgFormat = PetModule.db["profile"].Settings["MessageFormat"]
-    local channel = Options.db["profile"]["Channel"]
-    local summonedId = C_PetJournal.GetSummonedPetGUID()
-    local _, customName, _, _, _, _, _, name = C_PetJournal.GetPetInfoByPetID(summonedId)
+    local _, customName, _, _, _, _, _, name = C_PetJournal.GetPetInfoByPetID(randoPetId)
+
     local useCustomName = self.db["profile"].Settings["UseCustomName"]
     local name = useCustomName and customName or name
 
-    SendChatMessage(format(msgFormat, name), channel)
+    if announce then
+        self:AnnounceSummon(name)
+    end
+end
+
+function PetModule:AnnounceSummon(petName)
+    local msgFormat = PetModule.db["profile"].Settings["MessageFormat"]
+    local channel = Options.db["profile"]["Channel"]
+
+    SendChatMessage(format(msgFormat, petName), channel)
+end
+
+function PetModule:GetTableForLocationCreateIfNotExist(location)
+    if self.db["profile"]["Companions"][location] == nil then
+        self.db["profile"]["Companions"][location] = {}
+    end
+
+    return self.db["profile"]["Companions"][location]
+end
+
+function PetModule:AddPetToCurrentLocation(petName)
+    local location = GetZoneText()
+
+    self:AddPetToLocation(petName, location)
+end
+
+function PetModule:AddPetToLocation(petName, location)
+    local locationTable = self:GetTableForLocationCreateIfNotExist(location)
+
+    local speciesId, petGUID = C_PetJournal.FindPetIDByName(petName)
+
+    self:Printf("Species: %s, GUID: %s", speciesId, petGUID)
+
+    -- locationTable[#locationTable + 1] = petGUID
 end
