@@ -22,7 +22,9 @@ local registeredEvents = {}
 
 function PetModule:ZONE_CHANGED_NEW_AREA()
     self:Printf("New Area: %s", GetZoneText())
-    self:SummonFavoritePet(false)
+    if not C_PetJournal.GetSummonedPetGUID() then
+        self:SummonFavoritePet(false)
+    end
 end
 
 function PetModule:ZONE_CHANGED()
@@ -49,8 +51,18 @@ function PetModule:GetDefaultDatabase()
             ["MessageFormat"] = "Help me %s you're my only hope!!!",
             ["UseCustomName"] = true,
             ["FavoritePets"] = {},
+            ["PetCollections"] = {
+                ["Global"] = {},
+                ["Continents"] = {},
+                ["Cities"] = {},
+                ["Zones"] = {},
+                ["Dungeons"] = {},
+                ["Arenas"] = {},
+                ["Battlegrounds"] = {}
+            }
         }
     }
+
     return defaults
 end
 
@@ -73,7 +85,7 @@ local petModuleOptions = {
     ["RefreshFavoritePets"] = {
         type = "execute",
         name = "Refersh",
-        desc = "Refreshes Pet Summoners list of Favorite Pets by Scanning the Pet Journal",
+        desc = "Refreshes list of Favorite Pets by Scanning the Pet Journal",
         handler = PetModule,
         func = "LoadFavoritePets"
     }
@@ -186,8 +198,12 @@ function PetModule:SummonFavoritePet(announce)
     end
 end
 
+function PetModule:SummonPet(announce)
+
+end
+
 function PetModule:AnnounceSummon(petName)
-    local msgFormat = self.db.profile["MessageFormat"]
+    local msgFormat = PetModule.db.profile["MessageFormat"]
     local channel = Options.db.profile["Channel"]
 
     SendChatMessage(format(msgFormat, petName), channel)
