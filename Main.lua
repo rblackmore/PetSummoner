@@ -31,5 +31,5 @@ function addOn:ExecuteChatCommand(msg)
     return
   end
 
-  PetModule:SummonFavoritePet(true);
+  PetModule:SummonCompanion(true);
 end

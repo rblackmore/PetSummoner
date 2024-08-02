@@ -7,28 +7,28 @@ local addOn = LibStub("AceAddon-3.0"):GetAddon("PetSummoner")
 local Options = addOn:GetModule("Options")
 ---@class AceModule: AceConsole-3.0, AceEvent-3.0
 local PetModule = addOn:GetModule("PetModule")
+---@class AceModule: AceConsole-3.0, AceEvent-3.0, AceTimer-3.0
+local PetAutomationModule = PetModule:NewModule("PetAutomationModule", "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
+
 
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+
+
 
 local eventsToRegister = {
     -- "PET_JOURNAL_LIST_UPDATE",
     "ZONE_CHANGED_NEW_AREA", -- Player changes major Zone, et, Orgrimmar -> Durotar
     "ZONE_CHANGED",          -- Player changes minor zone, eg, Valley of Honor -> The Drag
-
 }
 
 local registeredEvents = {}
 
 function PetModule:ZONE_CHANGED_NEW_AREA()
-    self:Printf("New Area: %s", GetZoneText())
-    if not C_PetJournal.GetSummonedPetGUID() then
-        self:SummonFavoritePet(false)
-    end
+    self:UpdateCurrentZoneCompanions()
 end
 
 function PetModule:ZONE_CHANGED()
-    self:Printf("New Sub Zone: %s", GetSubZoneText())
 end
 
 -- Iterator, iterates over all pets, and returns each petID.
@@ -48,18 +48,24 @@ end
 function PetModule:GetDefaultDatabase()
     local defaults = {
         ["profile"] = {
-            ["MessageFormat"] = "Help me %s you're my only hope!!!",
-            ["UseCustomName"] = true,
+            ["Settings"] = {
+                ["MessageFormat"] = "Help me %s you're my only hope!!!",
+                ["UseCustomName"] = true,
+                ["AutoSummon"] = {
+                    ["delay"] = 2,
+                    ["GLOBAL"] = false,
+                    ["SCENARIO"] = false,
+                    ["RAID"] = false,
+                    ["DUNGEON"] = false,
+                    ["ARENA"] = false,
+                    ["BATTLEGROUND"] = false,
+                    ["RESTING"] = true,
+                    PetOfTheDay = { Enabled = false, Date = 0, PetId = 0 }
+                }
+            },
             ["FavoritePets"] = {},
-            ["PetCollections"] = {
-                ["Global"] = {},
-                ["Continents"] = {},
-                ["Cities"] = {},
-                ["Zones"] = {},
-                ["Dungeons"] = {},
-                ["Arenas"] = {},
-                ["Battlegrounds"] = {}
-            }
+            ["CurrentZoneCompanions"] = {},
+            ["Companions"] = {}
         }
     }
 
@@ -82,12 +88,14 @@ local petModuleOptions = {
         get = "GetValue",
         set = "SetValue",
     },
-    ["RefreshFavoritePets"] = {
+    ["AddFavoritesToCurrentLocation"] = {
         type = "execute",
         name = "Refersh",
-        desc = "Refreshes list of Favorite Pets by Scanning the Pet Journal",
+        desc = "Refreshes list of Favorite Pets by Scanning the Pet Journal and adds them to current location",
         handler = PetModule,
-        func = "LoadFavoritePets"
+        func = function()
+            local zoneText = GetZoneText(); PetModule:AddFavoritesToLocation(zoneText)
+        end
     }
 }
 
@@ -103,6 +111,9 @@ end
 
 function PetModule:OnInitialize()
     self:ConfigureOptionsDataBase()
+
+    self:AddFavoritesToLocation("GLOBAL")
+
     for _, event in ipairs(eventsToRegister) do
         if not registeredEvents[event] then
             self:RegisterEvent(event)
@@ -133,18 +144,23 @@ end
 
 function PetModule:GetValue(info)
     if info.arg then
-        return self.db.profile[info.arg][info[#info]]
+        return self.db["profile"].Settings[info.arg][info[#info]]
     else
-        return self.db.profile[info[#info]]
+        return self.db["profile"].Settings[info[#info]]
     end
 end
 
 function PetModule:SetValue(info, value)
     if info.arg then
-        self.db.profile[info.arg][info[#info]] = value
+        self.db["profile"].Settings[info.arg][info[#info]] = value
     else
-        self.db.profile[info[#info]] = value
+        self.db["profile"].Settings[info[#info]] = value
     end
+end
+
+function PetModule:AddFavoritesToLocation(location)
+    self:LoadFavoritePets()
+    self.db["profile"]["Companions"][location] = self.db["profile"]["FavoritePets"]
 end
 
 function PetModule:LoadFavoritePets()
@@ -169,22 +185,45 @@ function PetModule:LoadFavoritePets()
     end
 
     -- Add list of favorite pet ids to database.
-    self.db.profile["FavoritePets"] = favoritePets
-    self:Printf("%u pets added to Pet Summoner", #self.db.profile["FavoritePets"])
+    self.db["profile"]["FavoritePets"] = favoritePets
+    self:Printf("%u pets added to Pet Summoner", #self.db["profile"]["FavoritePets"])
 
     return favoritePets
 end
 
+-- Call this from any Event Handler that may triggeer the current list to have changed.
+function PetModule:UpdateCurrentZoneCompanions()
+    local location = GetZoneText()
+
+    -- Zone Location Saved in Database.
+    local zoneLocationPopulated = false
+    local locationTable = self.db["profile"]["Companions"][location]
+
+    if locationTable then
+        if #locationTable > 0 then
+            zoneLocationPopulated = true
+        end
+    end
+
+    if not zoneLocationPopulated then
+        local isInstance, instanceType = IsInInstance()
+
+        location = PETSUMMONER_INSTANCETYPES[instanceType]
+    end
+
+    self.db["profile"]["CurrentZoneCompanions"] = self.db["profile"]["Companions"][location]
+end
+
 function PetModule:SummonFavoritePet(announce)
-    if self.db.profile["FavoritePets"] == nil then
+    if self.db["profile"]["FavoritePets"] == nil then
         if not self:LoadFavoritePets() then
             self:Print("Unable to load favorites, check Pet Journal Filters are clear")
             return
         end
     end
 
-    local favoritePets = self.db.profile["FavoritePets"]
-    local useCustomName = self.db.profile["UseCustomName"]
+    local favoritePets = self.db["profile"]["FavoritePets"]
+    local useCustomName = self.db["profile"].Settings["UseCustomName"]
 
     local rand = math.random(#favoritePets)
     local selectedPetID = favoritePets[rand]
@@ -198,13 +237,36 @@ function PetModule:SummonFavoritePet(announce)
     end
 end
 
-function PetModule:SummonPet(announce)
+function PetModule:SummonCompanion(announce)
+    local companionSlots = {}
 
+    if not self.db["profile"]["CurrentZoneCompanions"] then
+        self:UpdateCurrentZoneCompanions()
+    end
+
+    local currentZoneCompanions = self.db["profile"]["CurrentZoneCompanions"]
+    local summonedId = C_PetJournal.GetSummonedPetGUID()
+
+    for i = 1, #currentZoneCompanions do
+        if self.db["profile"]["CurrentZoneCompanions"][i]["petID"] ~= summonedId then
+            companionSlots[i] = self.db["profile"]["CurrentZoneCompanions"][i]
+        end
+    end
+
+    C_PetJournal.SummonPetByGUID(companionSlots[math.random(#companionSlots)])
+
+    if announce then
+        self:AnnounceSummon()
+    end
 end
 
-function PetModule:AnnounceSummon(petName)
-    local msgFormat = PetModule.db.profile["MessageFormat"]
-    local channel = Options.db.profile["Channel"]
+function PetModule:AnnounceSummon()
+    local msgFormat = PetModule.db["profile"].Settings["MessageFormat"]
+    local channel = Options.db["profile"]["Channel"]
+    local summonedId = C_PetJournal.GetSummonedPetGUID()
+    local _, customName, _, _, _, _, _, name = C_PetJournal.GetPetInfoByPetID(summonedId)
+    local useCustomName = self.db["profile"].Settings["UseCustomName"]
+    local name = useCustomName and customName or name
 
-    SendChatMessage(format(msgFormat, petName), channel)
+    SendChatMessage(format(msgFormat, name), channel)
 end

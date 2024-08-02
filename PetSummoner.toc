@@ -15,7 +15,10 @@ Libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
 Libs\AceConsole-3.0\AceConsole-3.0.xml
 Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\AceConfig-3.0\AceConfig-3.0.xml
+Libs\AceTimer-3.0\AceTimer-3.0.xml
 
+PetSummonerConst.lua
 Main.lua
 Options.lua
-PetModule.lua
+PetModule\PetModuleCore.lua
+PetModule\PetModuleAutomation.lua
