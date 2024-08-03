@@ -209,6 +209,21 @@ function PetModule:UpdateCurrentZoneCompanions()
         #self.db["profile"]["Companions"][location])
 end
 
+function PetModule:GetCurrentZonePetList()
+    local location = GetZoneText()
+    if self.db["profile"]["Companions"][location] == nil or #self.db["profile"]["Companions"][location] <= 0 then
+        local isInstance, instanceType = IsInInstance()
+        location = PETSUMMONER_LOCATIONTYPES.GetCurrentZoneType()
+    end
+
+    if self.db["profile"]["Companions"][location] == nil or #self.db["profile"]["Companions"][location] <= 0 then
+        self["CurrentZoneCompanions"] = self.db["profile"]["FavoritePets"]
+        return
+    end
+
+    return self.db["profile"]["Companions"][location]
+end
+
 function PetModule:SummonFavoritePet(announce)
     if self.db["profile"]["FavoritePets"] == nil then
         if not self:LoadFavoritePets() then
