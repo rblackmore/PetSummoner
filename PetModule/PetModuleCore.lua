@@ -89,14 +89,12 @@ local petModuleOptions = {
         get = "GetValue",
         set = "SetValue",
     },
-    ["AddFavoritesToCurrentLocation"] = {
+    ["RefreshFavoritesList"] = {
         type = "execute",
         name = "Refersh",
-        desc = "Refreshes list of Favorite Pets by Scanning the Pet Journal and adds them to current location",
+        desc = "Refreshes list of Favorite Pets by Scanning the Pet Journal and adds them to database",
         handler = PetModule,
-        func = function()
-            local zoneText = GetZoneText(); PetModule:AddFavoritesToLocation(zoneText)
-        end
+        func = "LoadFavoritePets"
     }
 }
 
@@ -119,6 +117,8 @@ function PetModule:OnInitialize()
             registeredEvents[event] = true
         end
     end
+
+    self:UpdateCurrentZoneCompanions()
 end
 
 function PetModule:ConfigureOptionsDataBase()
@@ -193,25 +193,22 @@ end
 -- Call this from any Event Handler that may triggeer the current list to have changed.
 function PetModule:UpdateCurrentZoneCompanions()
     local location = GetZoneText()
-
-    -- Zone Location Saved in Database.
-    local zoneLocationPopulated = false
-    local locationTable = self.db["profile"]["Companions"][location]
-
-    if locationTable then
-        if #locationTable > 0 then
-            zoneLocationPopulated = true
-        end
-    end
-
-    if not zoneLocationPopulated then
+    if self.db["profile"]["Companions"][location] == nil or #self.db["profile"]["Companions"][location] <= 0 then
+        self:Printf("Current Zone(%s) Not Available or 0", location)
         local isInstance, instanceType = IsInInstance()
-
         location = PETSUMMONER_INSTANCETYPES[instanceType]
     end
+
+    if self.db["profile"]["Companions"][location] == nil or #self.db["profile"]["Companions"][location] <= 0 then
+        self:Printf("Instance Type(%s) Not Available or 0", location)
+        self["CurrentZoneCompanions"] = self.db["profile"]["FavoritePets"]
+        return
+    end
+
+    self["CurrentZoneCompanions"] = self.db["profile"]["Companions"][location]
+
     self:Printf("Updating CurrentZone To Location: %s with %d comanions ", location,
         #self.db["profile"]["Companions"][location])
-    self["CurrentZoneCompanions"] = self.db["profile"]["Companions"][location]
 end
 
 function PetModule:SummonFavoritePet(announce)
@@ -246,13 +243,12 @@ function PetModule:SummonCompanion(announce)
 
     local currentZoneCompanions = self["CurrentZoneCompanions"]
     local summonedId = C_PetJournal.GetSummonedPetGUID()
-
     for i = 1, #currentZoneCompanions do
-        if self["CurrentZoneCompanions"][i]["petID"] ~= summonedId then
+        if self["CurrentZoneCompanions"][i] ~= summonedId then
             companionSlots[i] = self["CurrentZoneCompanions"][i]
         end
     end
-
+    self:Printf("Companion Slots: %d", #companionSlots)
     local randoPetId = companionSlots[math.random(#companionSlots)]
 
     C_PetJournal.SummonPetByGUID(randoPetId)

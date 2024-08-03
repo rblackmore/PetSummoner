@@ -22,6 +22,7 @@
     "NUM_CHAT_WINDOWS",
     "ChatEdit_GetActiveWindow",
     "PET",
-    "PETS"
+    "PETS",
+    "Add"
   ]
 }
