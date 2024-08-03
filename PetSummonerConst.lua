@@ -8,11 +8,21 @@ PETSUMMONER_MAPTYPES = {
   [6] = "ORPHAN"
 }
 
-PETSUMMONER_INSTANCETYPES = {
+PETSUMMONER_LOCATIONTYPES = {
   ["pvp"] = "BATTLEGROUND",
   ["arena"] = "ARENA",
   ["party"] = "DUNGEON",
   ["raid"] = "RAID",
   ["scenario"] = "SCENARIO",
-  ["none"] = "GLOBAL"
+  ["none"] = "GLOBAL",
+  GetCurrentZoneType = function()
+    local _, instanceType = IsInInstance()
+    local zoneType = PETSUMMONER_LOCATIONTYPES[instanceType]
+
+    if IsResting() then
+      zoneType = "RESTING"
+    end
+
+    return zoneType
+  end
 }

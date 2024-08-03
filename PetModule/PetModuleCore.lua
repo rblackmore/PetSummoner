@@ -53,12 +53,12 @@ function PetModule:GetDefaultDatabase()
                 ["UseCustomName"] = true,
                 ["AutoSummon"] = {
                     ["delay"] = 2,
-                    ["GLOBAL"] = false,
-                    ["SCENARIO"] = false,
-                    ["RAID"] = false,
-                    ["DUNGEON"] = false,
-                    ["ARENA"] = false,
-                    ["BATTLEGROUND"] = false,
+                    ["GLOBAL"] = true,
+                    ["SCENARIO"] = true,
+                    ["RAID"] = true,
+                    ["DUNGEON"] = true,
+                    ["ARENA"] = true,
+                    ["BATTLEGROUND"] = true,
                     ["RESTING"] = true,
                     PetOfTheDay = { Enabled = false, Date = 0, PetId = 0 }
                 }
@@ -194,13 +194,11 @@ end
 function PetModule:UpdateCurrentZoneCompanions()
     local location = GetZoneText()
     if self.db["profile"]["Companions"][location] == nil or #self.db["profile"]["Companions"][location] <= 0 then
-        self:Printf("Current Zone(%s) Not Available or 0", location)
         local isInstance, instanceType = IsInInstance()
-        location = PETSUMMONER_INSTANCETYPES[instanceType]
+        location = PETSUMMONER_LOCATIONTYPES.GetCurrentZoneType()
     end
 
     if self.db["profile"]["Companions"][location] == nil or #self.db["profile"]["Companions"][location] <= 0 then
-        self:Printf("Instance Type(%s) Not Available or 0", location)
         self["CurrentZoneCompanions"] = self.db["profile"]["FavoritePets"]
         return
     end
@@ -248,7 +246,7 @@ function PetModule:SummonCompanion(announce)
             companionSlots[i] = self["CurrentZoneCompanions"][i]
         end
     end
-    self:Printf("Companion Slots: %d", #companionSlots)
+
     local randoPetId = companionSlots[math.random(#companionSlots)]
 
     C_PetJournal.SummonPetByGUID(randoPetId)

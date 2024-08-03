@@ -33,13 +33,8 @@ end
 
 function PetAutomationModule:ZONE_CHANGED_NEW_AREA()
   local automationSettings = PetModule.db["profile"].Settings["AutoSummon"]
-  local _, instanceType = IsInInstance()
 
-  local zoneType = PETSUMMONER_INSTANCETYPES[instanceType]
-
-  if IsResting() then
-    zoneType = "RESTING"
-  end
+  local zoneType = PETSUMMONER_LOCATIONTYPES.GetCurrentZoneType()
 
   if automationSettings[zoneType] then
     self:ScheduleTimer(function()
