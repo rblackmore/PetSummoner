@@ -10,7 +10,6 @@ local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 function Options:GetDefaultDatabase()
   local defaults = {
     ["profile"] = {
-      ["Channel"] = "SAY",
     }
   }
   return defaults
@@ -18,22 +17,6 @@ end
 
 local globalOptions =
 {
-  ["Channel"] = {
-    type = "select",
-    name = "Channel",
-    desc = "The Channel to Announce your Summon to",
-    values = {
-      ["SAY"] = "SAY",
-      ["EMOTE"] = "EMOTE",
-      ["YELL"] = "YELL",
-      ["PARTY"] = "PARTY",
-      ["RAID"] = "RAID",
-      ["INSTANCE_CHAT"] = "INSTANCE_CHAT",
-      ["GUILD"] = "GUILD",
-    },
-    get = "GetGlobalValue",
-    set = "SetGlobalValue",
-  }
 }
 
 function Options:GetOptionsTable()
@@ -77,7 +60,7 @@ function Options:ConfigureOptionsProfiles()
   }
 end
 
-function Options:GetGlobalValue(info)
+function Options:GetValue(info)
   if info.arg then
     return self.db.profile[info.arg][info[#info]]
   else
@@ -85,7 +68,7 @@ function Options:GetGlobalValue(info)
   end
 end
 
-function Options:SetGlobalValue(info, value)
+function Options:GetValue(info, value)
   if info.arg then
     self.db.profile[info.arg][info[#info]] = value
   else

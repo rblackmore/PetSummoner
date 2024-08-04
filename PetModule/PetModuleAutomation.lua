@@ -32,10 +32,10 @@ function PetAutomationModule:OnInitialize()
 end
 
 function PetAutomationModule:ZONE_CHANGED_NEW_AREA()
-  local automationSettings = PetModule.db["profile"].Settings["AutoSummon"]
+  local automationSettings = PetModule.db["profile"].Settings["Automation"]
 
   local zoneType = PETSUMMONER_LOCATIONTYPES.GetCurrentZoneType()
-
+  self:Print("Current Zone Type, ", zoneType)
   if automationSettings[zoneType] then
     self:ScheduleTimer(function()
       PetModule:SummonCompanion(false)

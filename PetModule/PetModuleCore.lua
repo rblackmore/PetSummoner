@@ -9,7 +9,8 @@ local Options = addOn:GetModule("Options")
 local PetModule = addOn:GetModule("PetModule")
 ---@class AceModule: AceConsole-3.0, AceEvent-3.0, AceTimer-3.0
 local PetAutomationModule = PetModule:NewModule("PetAutomationModule", "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
-
+---@class AceModule: AceConsole-3.0, AceEvent-3.0
+local PetModuleOptions = PetModule:NewModule("PetModuleOptions", "AceConsole-3.0", "AceEvent-3.0")
 
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
@@ -49,8 +50,9 @@ function PetModule:GetDefaultDatabase()
         ["profile"] = {
             ["Settings"] = {
                 ["MessageFormat"] = "Help me %s you're my only hope!!!",
+                ["Channel"] = "SAY",
                 ["UseCustomName"] = true,
-                ["AutoSummon"] = {
+                ["Automation"] = {
                     ["delay"] = 2,
                     ["GLOBAL"] = true,
                     ["SCENARIO"] = true,
@@ -70,43 +72,8 @@ function PetModule:GetDefaultDatabase()
     return defaults
 end
 
-local petModuleOptions = {
-    ["MessageFormat"] = {
-        type = "input",
-        name = "Message Format",
-        desc = "Format of the message to display, use %s in place where pet name should be shown.",
-        usage = "<Your message>",
-        get = "GetValue",
-        set = "SetValue",
-    },
-    ["UseCustomName"] = {
-        type = "toggle",
-        name = "Custom Name",
-        desc = "Use Custom Name if one is set, otherwise Species Name.",
-        get = "GetValue",
-        set = "SetValue",
-    },
-    ["RefreshFavoritesList"] = {
-        type = "execute",
-        name = "Refersh",
-        desc = "Refreshes list of Favorite Pets by Scanning the Pet Journal and adds them to database",
-        handler = PetModule,
-        func = "LoadFavoritePets"
-    }
-}
-
-function PetModule:GetOptionsTable()
-    local options = {
-        name = "Pets",
-        handler = PetModule,
-        type = "group",
-        args = petModuleOptions
-    }
-    return options
-end
-
 function PetModule:OnInitialize()
-    self:ConfigureOptionsDataBase()
+    self.db = LibStub("AceDB-3.0"):New("PetSummoner_PetModuleDB", self:GetDefaultDatabase(), true)
 
     for _, event in ipairs(eventsToRegister) do
         if not registeredEvents[event] then
@@ -114,20 +81,6 @@ function PetModule:OnInitialize()
             registeredEvents[event] = true
         end
     end
-end
-
-function PetModule:ConfigureOptionsDataBase()
-    self.db = LibStub("AceDB-3.0"):New("PetSummoner_PetModuleDB", self:GetDefaultDatabase(), true)
-
-    AceConfig:RegisterOptionsTable("PetSummoner_PetModule", self:GetOptionsTable(), "petconfig")
-
-    local petmoduleFrame, petmoduleId =
-        AceConfigDialog:AddToBlizOptions("PetSummoner_PetModule", "Pets", Options.GlobalSettingsDialog["Id"])
-
-    Options.PetModuleSettingsDialog = {
-        ["Frame"] = petmoduleFrame,
-        ["Id"] = petmoduleId,
-    }
 end
 
 function PetModule:OnEnable()

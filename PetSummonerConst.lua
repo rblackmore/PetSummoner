@@ -16,13 +16,11 @@ PETSUMMONER_LOCATIONTYPES = {
   ["scenario"] = "SCENARIO",
   ["none"] = "GLOBAL",
   ["GetCurrentZoneType"] = function()
-    local _, instanceType = IsInInstance()
-    local zoneType = PETSUMMONER_LOCATIONTYPES[instanceType]
-
     if IsResting() then
-      zoneType = "RESTING"
+      return "RESTING"
     end
 
-    return zoneType
+    local _, instanceType = IsInInstance()
+    return PETSUMMONER_LOCATIONTYPES[instanceType]
   end
 }

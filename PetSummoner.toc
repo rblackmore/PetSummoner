@@ -2,7 +2,7 @@
 ## Title: Pet Summoner
 ## Notes: Calls forth some help from one of your trusty companions. Use /summonhelp, /sh, /petsummon, /ps
 ## Author: Gruggo
-## Version: 0.0.5
+## Version: 0.0.6
 ## SavedVariables: PetSummonerDB, PetSummoner_PetModuleDB
 ## OptionalDeps: Ace3
 
@@ -19,6 +19,7 @@ Libs\AceTimer-3.0\AceTimer-3.0.xml
 
 PetSummonerConst.lua
 Main.lua
-Options.lua
+GlobalOptions.lua
 PetModule\PetModuleCore.lua
 PetModule\PetModuleAutomation.lua
+PetModule\PetModuleOptions.lua
