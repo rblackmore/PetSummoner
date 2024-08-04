@@ -15,7 +15,7 @@ PETSUMMONER_LOCATIONTYPES = {
   ["raid"] = "RAID",
   ["scenario"] = "SCENARIO",
   ["none"] = "GLOBAL",
-  GetCurrentZoneType = function()
+  ["GetCurrentZoneType"] = function()
     local _, instanceType = IsInInstance()
     local zoneType = PETSUMMONER_LOCATIONTYPES[instanceType]
 

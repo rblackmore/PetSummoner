@@ -25,7 +25,6 @@ local eventsToRegister = {
 local registeredEvents = {}
 
 function PetModule:ZONE_CHANGED_NEW_AREA()
-    self:UpdateCurrentZoneCompanions()
 end
 
 function PetModule:ZONE_CHANGED()
@@ -71,8 +70,6 @@ function PetModule:GetDefaultDatabase()
     return defaults
 end
 
-PetModule["CurrentZoneCompanions"] = {}
-
 local petModuleOptions = {
     ["MessageFormat"] = {
         type = "input",
@@ -117,8 +114,6 @@ function PetModule:OnInitialize()
             registeredEvents[event] = true
         end
     end
-
-    self:UpdateCurrentZoneCompanions()
 end
 
 function PetModule:ConfigureOptionsDataBase()
@@ -190,79 +185,45 @@ function PetModule:LoadFavoritePets()
     return favoritePets
 end
 
--- Call this from any Event Handler that may triggeer the current list to have changed.
-function PetModule:UpdateCurrentZoneCompanions()
+function PetModule:GetCurrentZoneCompanionList()
     local location = GetZoneText()
-    if self.db["profile"]["Companions"][location] == nil or #self.db["profile"]["Companions"][location] <= 0 then
-        local isInstance, instanceType = IsInInstance()
-        location = PETSUMMONER_LOCATIONTYPES.GetCurrentZoneType()
+    if self.db["profile"]["Companions"][location] ~= nil and #self.db["profile"]["Companions"][location] > 0 then
+        return self.db["profile"]["Companions"][location]
     end
 
-    if self.db["profile"]["Companions"][location] == nil or #self.db["profile"]["Companions"][location] <= 0 then
-        self["CurrentZoneCompanions"] = self.db["profile"]["FavoritePets"]
-        return
+    ---@diagnostic disable-next-line: cast-local-type
+    location = PETSUMMONER_LOCATIONTYPES.GetCurrentZoneType()
+
+    if self.db["profile"]["Companions"][location] ~= nil and #self.db["profile"]["Companions"][location] > 0 then
+        return self.db["profile"]["Companions"][location]
     end
 
-    self["CurrentZoneCompanions"] = self.db["profile"]["Companions"][location]
-
-    self:Printf("Updating CurrentZone To Location: %s with %d comanions ", location,
-        #self.db["profile"]["Companions"][location])
+    return self.db["profile"]["FavoritePets"]
 end
 
-function PetModule:GetCurrentZonePetList()
-    local location = GetZoneText()
-    if self.db["profile"]["Companions"][location] == nil or #self.db["profile"]["Companions"][location] <= 0 then
-        local isInstance, instanceType = IsInInstance()
-        location = PETSUMMONER_LOCATIONTYPES.GetCurrentZoneType()
-    end
+--[[
+    Gets Eligable Summons.
+    Filters out currently summoned pet from current zone pets.
+    More Filters to come, based on class, race, faction etc.
+--]]
+function PetModule:GetEligableSummons()
+    local currentZoneCompanions = self:GetCurrentZoneCompanionList()
+    local companionSlots = {}
 
-    if self.db["profile"]["Companions"][location] == nil or #self.db["profile"]["Companions"][location] <= 0 then
-        self["CurrentZoneCompanions"] = self.db["profile"]["FavoritePets"]
-        return
-    end
-
-    return self.db["profile"]["Companions"][location]
-end
-
-function PetModule:SummonFavoritePet(announce)
-    if self.db["profile"]["FavoritePets"] == nil then
-        if not self:LoadFavoritePets() then
-            self:Print("Unable to load favorites, check Pet Journal Filters are clear")
-            return
+    local summonedId = C_PetJournal.GetSummonedPetGUID()
+    for i = 1, #currentZoneCompanions do
+        if currentZoneCompanions[i] ~= summonedId then
+            companionSlots[i] = currentZoneCompanions[i]
         end
     end
 
-    local favoritePets = self.db["profile"]["FavoritePets"]
-    local useCustomName = self.db["profile"].Settings["UseCustomName"]
-
-    local rand = math.random(#favoritePets)
-    local selectedPetID = favoritePets[rand]
-
-    C_PetJournal.SummonPetByGUID(selectedPetID)
-    local _, customName, _, _, _, _, _, name = C_PetJournal.GetPetInfoByPetID(selectedPetID)
-    local name = useCustomName and customName or name
-
-    if announce then
-        self:AnnounceSummon(name)
-    end
+    return companionSlots
 end
 
 function PetModule:SummonCompanion(announce)
-    local companionSlots = {}
+    local eligablePets = self:GetEligableSummons()
 
-    if not self["CurrentZoneCompanions"] then
-        self:UpdateCurrentZoneCompanions()
-    end
-
-    local currentZoneCompanions = self["CurrentZoneCompanions"]
-    local summonedId = C_PetJournal.GetSummonedPetGUID()
-    for i = 1, #currentZoneCompanions do
-        if self["CurrentZoneCompanions"][i] ~= summonedId then
-            companionSlots[i] = self["CurrentZoneCompanions"][i]
-        end
-    end
-
-    local randoPetId = companionSlots[math.random(#companionSlots)]
+    local randoPetId = eligablePets[math.random(#eligablePets)]
 
     C_PetJournal.SummonPetByGUID(randoPetId)
 
@@ -281,28 +242,4 @@ function PetModule:AnnounceSummon(petName)
     local channel = Options.db["profile"]["Channel"]
 
     SendChatMessage(format(msgFormat, petName), channel)
-end
-
-function PetModule:GetTableForLocationCreateIfNotExist(location)
-    if self.db["profile"]["Companions"][location] == nil then
-        self.db["profile"]["Companions"][location] = {}
-    end
-
-    return self.db["profile"]["Companions"][location]
-end
-
-function PetModule:AddPetToCurrentLocation(petName)
-    local location = GetZoneText()
-
-    self:AddPetToLocation(petName, location)
-end
-
-function PetModule:AddPetToLocation(petName, location)
-    local locationTable = self:GetTableForLocationCreateIfNotExist(location)
-
-    local speciesId, petGUID = C_PetJournal.FindPetIDByName(petName)
-
-    self:Printf("Species: %s, GUID: %s", speciesId, petGUID)
-
-    -- locationTable[#locationTable + 1] = petGUID
 end
