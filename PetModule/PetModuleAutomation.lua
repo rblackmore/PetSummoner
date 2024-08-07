@@ -33,14 +33,12 @@ end
 
 function PetAutomationModule:ZONE_CHANGED_NEW_AREA()
   local automationSettings = PetModule.db["profile"].Settings["Automation"]
-
-  local zoneType = PETSUMMONER_LOCATIONTYPES.GetCurrentZoneType()
-  self:Print("Current Zone Type, ", zoneType)
-  if automationSettings[zoneType] then
-    self:ScheduleTimer(function()
+  self:ScheduleTimer(function()
+    local zoneType = PETSUMMONER_LOCATIONTYPES.GetCurrentZoneType()
+    if automationSettings[zoneType] then
       PetModule:SummonCompanion(false)
-    end, automationSettings["delay"])
-  end
+    end
+  end, automationSettings["delay"])
 end
 
 function PetAutomationModule:ZONE_CHANGED()
