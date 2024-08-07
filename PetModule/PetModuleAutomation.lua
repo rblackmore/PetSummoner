@@ -32,6 +32,10 @@ function PetAutomationModule:OnInitialize()
 end
 
 function PetAutomationModule:ZONE_CHANGED_NEW_AREA()
+  if C_PetJournal.GetSummonedPetGUID() then
+    return
+  end
+
   local automationSettings = PetModule.db["profile"].Settings["Automation"]
   self:ScheduleTimer(function()
     local zoneType = PETSUMMONER_LOCATIONTYPES.GetCurrentZoneType()

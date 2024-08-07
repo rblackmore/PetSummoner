@@ -23,6 +23,7 @@
     "ChatEdit_GetActiveWindow",
     "PET",
     "PETS",
-    "Add"
+    "Add",
+    "enabled"
   ]
 }
