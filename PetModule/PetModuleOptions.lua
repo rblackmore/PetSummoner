@@ -57,6 +57,14 @@ local companionOptions = {
     desc = "Refreshes list of Favorite Pets by Scanning the Pet Journal and adds them to database",
     handler = PetModule,
     func = "LoadFavoritePets"
+  },
+  ["EnablePetOfTheDay"] = {
+    type = "toggle",
+    name = "Enabled Pet of the Day",
+    desc = "Saves the first pet summoned for the day, and summons only that one for the rest of the day.",
+    handler = PetModule,
+    get = function(info) return PetModule.db["profile"].Settings["PetOfTheDay"].Enabled end,
+    set = function(info, value) PetModule.db["profile"].Settings["PetOfTheDay"].Enabled = value end,
   }
 }
 

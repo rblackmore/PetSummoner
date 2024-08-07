@@ -228,8 +228,9 @@ function PetModule:SummonPetofTheDay()
       ["day"] = currentDate.day,
     }
   end
-
-  C_PetJournal.SummonPetByGUID(petId)
+  if C_PetJournal.GetSummonedPetGUID() ~= petId then
+    C_PetJournal.SummonPetByGUID(petId)
+  end
 
   return petId
 end
@@ -262,4 +263,3 @@ function PetModule:AnnounceSummon(petId)
 
   SendChatMessage(format(msgFormat, name), channel)
 end
-
