@@ -1,0 +1,21 @@
+## Interface: 110000
+## Title: Gruggs Mysterious Menageri (GMM)
+## Notes: Calls forth some help from one of your trusty Companions and Mounts(WIP)
+## Author: Grugg
+## Version: 0.0.7
+## SavedVariables: GMM_DB, GMM_CompanionDB
+## OptionalDeps: Ace3
+
+Libs.xml
+
+Core.lua
+DB.lu
+
+# Utils
+Utils\Helpers.lua
+
+# Options
+GlobalOptions.lua
+
+# Modules
+Modules.xml
