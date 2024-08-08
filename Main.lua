@@ -12,7 +12,6 @@ local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
 function addOn:OnInitialize()
-
 end
 
 function addOn:OnEnable()
@@ -26,6 +25,7 @@ function addOn:OnDisable()
 end
 
 function addOn:ExecuteChatCommand(msg)
+
   local sep = " "
   local args = {}
   local total = 0
@@ -45,4 +45,5 @@ function addOn:ExecuteChatCommand(msg)
   end
 
   PetModule:SummonCompanion(true);
+
 end
