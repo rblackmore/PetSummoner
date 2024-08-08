@@ -18,6 +18,7 @@ local eventsToRegister = {
   -- "PET_JOURNAL_LIST_UPDATE",
   "ZONE_CHANGED_NEW_AREA", -- Player changes major Zone, et, Orgrimmar -> Durotar
   "ZONE_CHANGED",          -- Player changes minor zone, eg, Valley of Honor -> The Drag
+  "UNIT_SPELLCAST_SUCCEEDED",
 }
 
 local registeredEvents = {}
@@ -43,6 +44,15 @@ function PetAutomationModule:ZONE_CHANGED_NEW_AREA()
       PetModule:SummonCompanion(false)
     end
   end, automationSettings["delay"])
+end
+
+function PetAutomationModule:UNIT_SPELLCAST_SUCCEEDED(unit, castGUID, spellID)
+  --[[
+    TODO: Posible Ideas:
+    Perhaps on load, I make a list of all pets, including their names, C_Spell.GetSpellInfo(spellID) will give me the name of the pet.
+    I can then check the list ofr this name if it existes, then it was a pet that was summoned.
+      I should also check the GUID, that it's type is '3' which usually indicates a spell cast by player
+  ]]
 end
 
 function PetAutomationModule:ZONE_CHANGED()

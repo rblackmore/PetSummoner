@@ -1,0 +1,5 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+  <Script file="modules\PetModule\PetModuleCore.lua" />
+  <Script file="modules\PetModule\PetModuleAutomation.lua" />
+  <Script file="modules\PetModule\PetModuleOptions.lua" />
+</Ui>

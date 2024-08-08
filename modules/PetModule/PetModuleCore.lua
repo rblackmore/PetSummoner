@@ -182,14 +182,6 @@ function PetModule:GetEligableSummons()
   return companionSlots
 end
 
---[[
-    Quick Notes:
-    Pet Of The Day.
-    First, check if Enabled.
-    Check if date not today: pick rando pet.
-    Save pet to petoftheday,
-
-]]
 function PetModule:SummonCompanion(announce)
   local settings = self.db["profile"].Settings
   local summonedId
