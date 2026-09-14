@@ -271,7 +271,7 @@ function Database:GetListForScope(scope, ...)
 
   if scope == SCOPES.world then
     addOn:Print("Returning World")
-    return SCOPES.world and CompanionList:new(dbp.world)
+    return dbp.world and CompanionList:new(dbp.world)
   end
 
   if scope == SCOPES.continent then
