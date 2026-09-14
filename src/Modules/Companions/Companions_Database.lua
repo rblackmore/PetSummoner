@@ -270,13 +270,11 @@ function Database:GetListForScope(scope, ...)
   local dbc = Data.Companions.char
 
   if scope == SCOPES.world then
-    addOn:Print("Returning World")
     return SCOPES.world and CompanionList:new(dbp.world)
   end
 
   if scope == SCOPES.continent then
     local continentId = ...
-    addOn:Printf("Returning Continent %d", continentId)
     if continentId then
       return dbp.continents[continentId] and CompanionList:new(dbp.continents[continentId])
     end
@@ -284,7 +282,6 @@ function Database:GetListForScope(scope, ...)
 
   if scope == SCOPES.zone then
     local continentId, zoneId = ...
-    addOn:Printf("Returning zone [%d] %d", continentId, zoneId)
     if continentId and zoneId then
       return dbp.zones[continentId] and
           dbp.zones[continentId][zoneId] and
@@ -294,7 +291,6 @@ function Database:GetListForScope(scope, ...)
 
   if scope == SCOPES.outfit then
     local outfitId = ...
-    addOn:Printf("Returning outfit %d", outfitId)
     if outfitId then
       return dbc.outfits[outfitId] and CompanionList:new(dbc.outfits[outfitId])
     end
@@ -318,21 +314,26 @@ function Database:GetCurrentContextPetList()
   return outfitList or continentList or zoneList or worldList
 end
 
-function Database:GetListForContextScope(scope)
+function Database:GetListForContextScope(scope, ensure)
   if scope == SCOPES.world then
+    if ensure then self:EnsureScope(scope) end
     return Database:GetListForScope(scope)
   end
+
   if scope == SCOPES.continent then
     local success, continentId = MapUtils.GetContinentIDForMap(C_Map.GetBestMapForUnit("player"))
+    if ensure then self:EnsureScope(scope, continentId) end
     return Database:GetListForScope(scope, continentId)
   end
   if scope == SCOPES.zone then
     local mapId = C_Map.GetBestMapForUnit("player")
     local success, continentId = MapUtils.GetContinentIDForMap(mapId)
+    if ensure then self:EnsureScope(scope, continentId, mapId) end
     return Database:GetListForScope(scope, continentId, mapId)
   end
   if scope == SCOPES.outfit then
     local outfitId = C_TransmogOutfitInfo.GetActiveOutfitID()
+    if ensure then self:EnsureScope(scope, outfitId) end
     return Database:GetListForScope(scope, outfitId)
   end
 end

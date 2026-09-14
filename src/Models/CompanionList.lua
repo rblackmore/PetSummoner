@@ -55,6 +55,7 @@ function CompanionList:remove(petGUID)
 end
 
 function CompanionList:clear()
+  -- TODO: if this is not the world list, I may want to erase the table from DB Completely
   self.pets = {}
   self.weights = {}
   self.order = {}
@@ -79,4 +80,15 @@ end
 
 function CompanionList:hasPet(petGUID)
   return self.pets and petGUID and self.pets[petGUID]
+end
+
+function CompanionList:getPetNames()
+  local names = {}
+
+  for i, v in ipairs(self.order) do
+    local petTable = C_PetJournal.GetPetInfoTableByPetID(v)
+    tinsert(names, petTable.name)
+  end
+
+  return names
 end
