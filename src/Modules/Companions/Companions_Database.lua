@@ -270,7 +270,8 @@ function Database:GetListForScope(scope, ...)
   local dbc = Data.Companions.char
 
   if scope == SCOPES.world then
-    return SCOPES.world and CompanionList:new(dbp.world)
+    addOn:Print("Returning World")
+    return dbp.world and CompanionList:new(dbp.world)
   end
 
   if scope == SCOPES.continent then
