@@ -270,7 +270,6 @@ function Database:GetListForScope(scope, ...)
   local dbc = Data.Companions.char
 
   if scope == SCOPES.world then
-    addOn:Print("Returning World")
     return dbp.world and CompanionList:new(dbp.world)
   end
 
@@ -340,17 +339,18 @@ function Database:GetListForContextScope(scope, ensure)
 end
 
 function Database:BuildFallbackList()
-  local dbp = Data.Settings.profile
-  local useFavorites = dbp.companions.UseFavoritesFallback
+  local dbp = Data.CompanionSettings.profile
+  local useFavorites = dbp.UseFavoritesFallback
 
-  local list = CompanionList.new()
+  ---@class GMM_Companion_List
+  local list = CompanionList:new()
   local petGUIDs = C_PetJournal.GetOwnedPetIDs()
 
   for i = 1, #petGUIDs do
     local speciesID, _, _, _, _, _, isFavorite = C_PetJournal.GetPetInfoByPetID(petGUIDs[i])
     if speciesID then
       if not useFavorites or isFavorite then
-        CompanionList.addPet(list, petGUIDs[i])
+        list:add(petGUIDs[i])
       end
     end
   end

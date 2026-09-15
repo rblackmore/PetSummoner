@@ -31,9 +31,9 @@ Mixin(companionModule, {
 
 function companionModule:OnInitialize()
   companionModule.Database:Init()
+  companionModule.Settings:Init()
   companionModule.Cache:Init()
   companionModule.Automation:Init()
-  companionModule.Settings:Init()
   companionModule.Config:Init()
 end
 

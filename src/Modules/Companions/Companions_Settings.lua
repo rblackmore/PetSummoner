@@ -20,6 +20,7 @@ end
 --------------------------------------------------------------------------------
 
 function Settings:Init()
+  addOn:Print("Initializing Companion Settings")
   Data["CompanionSettings"] = Data.AceDatabase:RegisterNamespace("CompanionModuleSettings", {
     profile = {
       MessageFormat = "Help me %s you're my only hope!!!",

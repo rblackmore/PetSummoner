@@ -31,8 +31,9 @@ local EVENTS_TO_REGISTER = {
 --------------------------------------------------------------------------------
 --- Cache Local State
 --------------------------------------------------------------------------------
-
+---@class GMM_Companion_List
 local effectivePetListCache = nil
+---@class GMM_Companion_List
 local fallbackPetList = nil
 
 --------------------------------------------------------------------------------
@@ -48,25 +49,35 @@ function Cache:Init()
 
   self:RegisterMessage("GMM_CONFIG_USEFAVORITES_CHANGED", "RefreshFallback")
 
+  self:Refresh()
+end
+
+function Cache:Refresh()
   self:RefreshEffectiveList()
+  self:RefreshFallback()
 end
 
 function Cache:RefreshEffectiveList()
   local list = Database:GetCurrentContextPetList()
   effectivePetListCache = list
 
-  if not effectivePetListCache and not fallbackPetList then
-    fallbackPetList = Database:BuildFallbackList()
-  end
-
   self:SendMessage("GMM_EFFECTIVE_PET_LIST_UPDATED")
-  return effectivePetListCache or fallbackPetList
 end
 
 function Cache:RefreshFallback()
   fallbackPetList = Database:BuildFallbackList()
+  self:SendMessage("GMM_FALLBACK_PET_LIST_UPDATED")
 end
 
 function Cache:GetEffectivePetList()
-  return effectivePetListCache or fallbackPetList or Cache:RefreshEffectiveList()
+  if effectivePetListCache and not effectivePetListCache:isEmpty() then
+    return effectivePetListCache
+  end
+
+  if fallbackPetList and not fallbackPetList:isEmpty() then
+    return fallbackPetList
+  end
+  addOn:Print("Uh Oh")
+
+  -- Uh Oh!!!!
 end

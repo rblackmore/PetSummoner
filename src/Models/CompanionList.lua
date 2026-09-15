@@ -12,6 +12,17 @@ local rando = math.random
 --------------------------------------------------------------------------------
 --- Companion List Model
 --------------------------------------------------------------------------------
+---@class GMM_Companion_List
+---@field new function
+---@field isEmpty function
+---@field add function
+---@field remove function
+---@field clear function
+---@field getRandom function
+---@field hasPet function
+---@field getPetNames function
+
+---@class GMM_Companion_List
 local CompanionList = {}
 CompanionList.__index = CompanionList
 
